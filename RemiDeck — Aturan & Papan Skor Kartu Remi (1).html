@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RemiDeck — Aturan & Papan Skor Kartu Remi</title>
+<style>
+:root{
+  --bg:#f5f4ef;--surface:#fff;--surface2:#efeee7;--ink:#1b1d1a;--muted:#686c64;--line:#e3e0d5;
+  --accent:#17794f;--accent-ink:#fff;--accent-soft:#dff1e7;
+  --gold:#a96a0f;--gold-soft:#fbefd3;--danger:#c0392b;--danger-soft:#fbe3df;
+  --shadow:0 1px 2px rgba(20,25,20,.06),0 8px 24px rgba(20,25,20,.06);
+  --r:16px;color-scheme:light;
+}
+:root[data-theme=dark]{
+  --bg:#0e1310;--surface:#161c18;--surface2:#1e2620;--ink:#eef2ed;--muted:#98a299;--line:#28322b;
+  --accent:#3dcc8c;--accent-ink:#06210f;--accent-soft:#16352a;
+  --gold:#e8b44f;--gold-soft:#352a10;--danger:#ff8070;--danger-soft:#3b1d19;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+body.noscroll{overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3,h4,p{margin:0}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px calc(32px + env(safe-area-inset-bottom))}
+.wrap.wide{max-width:980px}
+.num{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+
+/* top / header */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:calc(18px + env(safe-area-inset-top)) 0 14px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{display:grid;grid-template-columns:1fr 1fr;width:44px;height:44px;border-radius:14px;background:var(--surface);border:1px solid var(--line);place-items:center;font-size:15px;line-height:1;padding:7px;box-shadow:var(--shadow)}
+.logo i{font-style:normal}.logo .r{color:#d4483b}.logo .g{color:var(--gold)}
+.brand h1{font-size:21px;letter-spacing:-.02em;line-height:1.1}
+.brand p{font-size:13px;color:var(--muted)}
+.icon{width:44px;height:44px;border-radius:12px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;font-size:18px}
+.icon:active{transform:scale(.96)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:10px 16px;border-radius:12px;font-weight:650;font-size:14px;background:var(--surface2);border:1px solid var(--line);transition:transform .08s}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn.soft{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.btn.danger{background:var(--danger-soft);color:var(--danger);border-color:transparent}
+.btn.lg{min-height:52px;font-size:16px;width:100%;border-radius:14px;box-shadow:0 6px 18px rgba(23,121,79,.25)}
+.btn[disabled]{opacity:.4;pointer-events:none}
+.btn small{font-weight:500;opacity:.8;font-size:11px}
+.x{width:40px;height:40px;border-radius:10px;color:var(--muted);font-size:15px}
+.x:hover{background:var(--surface2)}
+
+/* home */
+.search input{width:100%;height:48px;padding:0 16px;border-radius:14px;border:1px solid var(--line);background:var(--surface);font-size:15px}
+.search input:focus{outline:2px solid var(--accent);border-color:transparent}
+.chips-row{display:flex;gap:8px;overflow-x:auto;padding:12px 0 2px;scrollbar-width:none}
+.chips-row::-webkit-scrollbar{display:none}
+.fchip{flex:none;min-height:38px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-weight:600;font-size:13px;color:var(--muted)}
+.fchip.on{background:var(--ink);color:var(--bg);border-color:transparent}
+.flabel{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;margin:12px 0 0}
+.resume{margin:16px 0 0;padding:12px 14px;border-radius:14px;background:var(--gold-soft);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.resume b{font-size:13px;color:var(--gold)}
+.resume button{padding:6px 12px;border-radius:999px;background:var(--surface);font-weight:650;font-size:13px;border:1px solid var(--line)}
+.count{margin:14px 0 10px;font-size:13px;color:var(--muted)}
+.grid{display:grid;gap:12px}
+@media(min-width:760px){.grid{grid-template-columns:1fr 1fr}}
+.gcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:12px;cursor:pointer;box-shadow:var(--shadow);transition:transform .12s,border-color .12s}
+.gcard:hover{border-color:var(--accent);transform:translateY(-1px)}
+.gc-top{display:flex;gap:12px;align-items:flex-start}
+.em{width:46px;height:46px;border-radius:14px;background:var(--surface2);display:grid;place-items:center;font-size:24px;flex:none;position:relative}
+.dot{position:absolute;top:-3px;right:-3px;width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid var(--surface)}
+.gc-top h2{font-size:17px;line-height:1.25;letter-spacing:-.01em}
+.gc-top p{font-size:13px;color:var(--muted);margin-top:2px}
+.goal{font-size:14px;color:var(--ink);opacity:.85}
+.meta{display:flex;flex-wrap:wrap;gap:6px}
+.meta span{font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--surface2);color:var(--muted)}
+.meta .lvl{background:var(--gold-soft);color:var(--gold)}
+.gc-act{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:auto}
+.empty{text-align:center;padding:48px 16px;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:var(--r)}
+.empty b{display:block;color:var(--ink);font-size:17px;margin:6px 0}
+footer.f{margin-top:28px;font-size:12px;color:var(--muted);text-align:center}
+
+/* game header */
+.gh{position:sticky;top:0;z-index:20;background:var(--bg);margin:0 -16px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;border-bottom:1px solid transparent}
+.gh.stuck{border-color:var(--line)}
+.gh-row{display:flex;align-items:center;gap:10px}
+.gh-t{flex:1;min-width:0}
+.gh-t h1{font-size:18px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gh-t p{font-size:12px;color:var(--muted)}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;background:var(--surface2);border-radius:14px;margin-top:10px}
+.seg button{min-height:42px;border-radius:10px;font-weight:650;font-size:14px;color:var(--muted)}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.seg.sm{margin:0 0 12px}.seg.sm button{min-height:38px;font-size:13px}
+
+/* rules */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.hero{padding:16px;margin-top:14px}
+.hero .goal{font-size:15px;opacity:1}
+.hero .meta{margin-top:12px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tags span{font-size:12px;font-weight:650;padding:4px 10px;border-radius:8px;background:var(--accent-soft);color:var(--accent)}
+details.sec{margin-top:10px;overflow:hidden}
+details.sec>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:14px 16px;font-weight:700;font-size:15px;min-height:52px}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary .n{width:26px;height:26px;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:13px;flex:none}
+details.sec>summary .chev{margin-left:auto;color:var(--muted);transition:transform .2s}
+details.sec[open]>summary .chev{transform:rotate(180deg)}
+.sec-b{padding:0 16px 16px;font-size:14.5px}
+.sec-b ul{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.sec-b li{position:relative;padding-left:16px}
+.sec-b li::before{content:"";position:absolute;left:2px;top:.62em;width:6px;height:6px;border-radius:50%;background:var(--gold)}
+.sec-b li ul{margin-top:8px;gap:6px}
+.sec-b li li::before{background:var(--line);width:5px;height:5px}
+.sec-b strong{font-weight:700}
+.rules-act{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+
+/* board */
+.strip{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 10px}
+.pill{font-size:12px;font-weight:700;padding:5px 11px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.pill.gold{background:var(--gold-soft);color:var(--gold);border-color:transparent}
+.pill.ok{color:var(--accent)}.pill.warn{color:var(--danger)}
+.tb{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.tb .btn{flex-direction:column;gap:0;padding:6px 4px;min-height:52px;font-size:12px;line-height:1.25}
+.tb .btn span{font-size:17px}
+.banner{padding:14px 16px;border-radius:var(--r);background:linear-gradient(135deg,var(--gold-soft),var(--accent-soft));display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;font-weight:750}
+.hint{padding:12px 14px;border-radius:14px;background:var(--surface);border:1px solid var(--line);font-size:13.5px;margin-bottom:12px;display:grid;gap:4px}
+.lb{display:grid;gap:10px}
+.row{padding:14px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow)}
+.row.lead{border-color:var(--gold);background:linear-gradient(180deg,var(--gold-soft),var(--surface) 70%)}
+.row.dim{opacity:.55}
+.row-main{display:flex;align-items:center;gap:12px}
+.rk{width:32px;height:32px;border-radius:10px;background:var(--surface2);display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
+.row.lead .rk{background:var(--gold);color:#fff}
+.who{flex:1;min-width:0}
+.who b{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:3px}
+.chip{font-size:11.5px;font-weight:650;padding:2px 8px;border-radius:6px;background:var(--surface2);color:var(--muted)}
+.chip.pos{background:var(--accent-soft);color:var(--accent)}
+.chip.neg{background:var(--danger-soft);color:var(--danger)}
+.chip.gold{background:var(--gold-soft);color:var(--gold)}
+.val{text-align:right;line-height:1.05}
+.val .v{font-size:30px;font-weight:800;letter-spacing:-.02em}
+.val .u{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;margin-top:2px}
+.val.neg .v{color:var(--danger)}.val.pos .v{color:var(--accent)}
+.bar{height:8px;border-radius:99px;background:var(--surface2);margin-top:12px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .3s}
+.row.lead .bar i{background:var(--gold)}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.acts .btn{flex:1 1 calc(50% - 8px);min-height:44px;font-size:13px}
+.acts .btn.good{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.acts .btn.bad{background:var(--danger-soft);color:var(--danger);border-color:transparent}
+.acts .btn.warn{background:var(--gold-soft);color:var(--gold);border-color:transparent}
+.tokens{display:flex;gap:6px;margin-top:12px}
+.tokens span{flex:1;height:38px;border-radius:9px;display:grid;place-items:center;font-weight:800;font-size:14px;background:var(--surface2);color:var(--muted)}
+.tokens span.on{background:var(--danger);color:#fff}
+.dock{position:sticky;bottom:0;z-index:10;margin:14px -16px 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(rgba(0,0,0,0),var(--bg) 35%)}
+details.hist{margin-top:14px;overflow:hidden}
+details.hist>summary{cursor:pointer;list-style:none;padding:14px 16px;font-weight:700;font-size:14px;min-height:50px;display:flex;align-items:center}
+details.hist>summary::-webkit-details-marker{display:none}
+.h-i{display:flex;align-items:center;gap:8px;padding:10px 12px 10px 16px;border-top:1px solid var(--line);font-size:13px}
+.h-i>div{flex:1;min-width:0}
+.h-i b{font-size:13px}
+
+/* sheet */
+.sw{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sw[hidden]{display:none}
+.scrim{position:absolute;inset:0;background:rgba(10,14,11,.55);backdrop-filter:blur(3px)}
+.sheet{position:relative;width:100%;max-width:520px;max-height:92vh;max-height:92dvh;display:flex;flex-direction:column;background:var(--bg);border-radius:22px 22px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,.25);animation:up .22s cubic-bezier(.16,1,.3,1)}
+@media(min-width:600px){.sw{align-items:center}.sheet{border-radius:22px}}
+@keyframes up{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+.grab{width:40px;height:4px;border-radius:9px;background:var(--line);margin:8px auto 0}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;padding:8px 8px 4px 20px}
+.sheet-head h3{font-size:18px}
+.sheet-body{overflow-y:auto;padding:8px 20px 16px;flex:1}
+.sheet-foot{padding:12px 20px calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 2fr;gap:10px}
+.sheet-foot:empty{display:none}
+.frow{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.frow-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.frow-h .net{font-weight:800;font-size:15px}
+.net.pos,.pos{color:var(--accent)}.net.neg,.neg{color:var(--danger)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lbl{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.lbl.pos{color:var(--accent)}.lbl.neg{color:var(--danger)}
+.stp{display:flex;align-items:center;gap:4px}
+.stp button{width:44px;height:48px;border-radius:12px;background:var(--surface2);font-weight:800;font-size:20px;flex:none}
+.stp input{flex:1;min-width:0;width:100%;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--bg);text-align:center;font-weight:800;font-size:18px;font-family:ui-monospace,Menlo,monospace}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+.pick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.pick label{position:relative}
+.pick input{position:absolute;opacity:0;inset:0}
+.pick span{display:block;padding:11px 16px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-weight:650;min-height:44px}
+.pick input:checked+span{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.pick input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.check{display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;background:var(--gold-soft);margin:14px 0;cursor:pointer}
+.check input{width:22px;height:22px;accent-color:var(--gold)}
+.check div{flex:1;font-weight:700;font-size:14px}.check small{display:block;font-weight:500;color:var(--muted)}
+.pvbox{text-align:center;padding:14px;border-radius:14px;background:var(--surface);border:1px solid var(--line);font-weight:800;font-size:20px}
+.set{margin-bottom:20px}
+.rn{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+.rn input,.set textarea{flex:1;min-width:0;height:46px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface)}
+.set textarea{height:90px;padding:10px;width:100%;font:12px ui-monospace,Menlo,monospace;resize:vertical}
+.ord{display:grid;gap:8px;margin-bottom:14px}
+.ord-i{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-weight:650}
+.ord-i .no{width:26px;height:26px;border-radius:8px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-size:13px;font-weight:800}
+.ord-i small{margin-left:auto;color:var(--muted);font-weight:600}
+.big{font-size:44px;font-weight:800;text-align:center;margin:10px 0}
+.out{text-align:center;font-size:26px;font-weight:800;min-height:40px;color:var(--accent)}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+
+/* tabletop */
+#tt{position:fixed;inset:0;z-index:40;background:var(--bg);overflow:auto;padding:calc(16px + env(safe-area-inset-top)) 16px 24px}
+#tt[hidden]{display:none}
+.tt-in{max-width:900px;margin:0 auto}
+.tt-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.tt-h h2{font-size:20px}
+.tt-r{display:flex;align-items:center;gap:16px;padding:18px 20px;border-radius:20px;background:var(--surface);border:1px solid var(--line);margin-bottom:12px}
+.tt-r.lead{border-color:var(--gold);background:var(--gold-soft)}
+.tt-r .nm{flex:1;font-size:clamp(20px,4vw,34px);font-weight:750;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.tt-r .v{font-size:clamp(44px,12vw,92px);font-weight:800;line-height:1}
+
+
+/* contoh kartu */
+.ex{display:grid;gap:16px}
+.ex h4{font-size:12px;margin:0 0 8px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.exr{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-bottom:8px;padding:10px;border-radius:12px;background:var(--surface2)}
+.cards{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.cards .gp{width:2px;height:48px;background:var(--line);margin:0 6px;border-radius:2px}
+.cards .op{font-weight:800;color:var(--muted);padding:0 2px}
+.pc{display:inline-block;position:relative;width:38px;height:54px;border-radius:7px;background:#fff;border:1px solid #d3d1c6;box-shadow:0 1px 2px rgba(0,0,0,.15);color:#1b1d1a;flex:none}
+.pc.red{color:#d03a2e}
+.pc .cv{position:absolute;top:3px;left:4px;font-size:13px;line-height:1;font-weight:800;letter-spacing:-.5px}
+.pc .cv i{display:block;font-style:normal;font-size:10px;margin-top:1px;letter-spacing:0}
+.pc .st{position:absolute;right:4px;bottom:2px;font-size:22px;line-height:1}
+.pc.back{background:repeating-linear-gradient(45deg,#2f6f55 0 4px,#26594a 4px 8px);border-color:#1b4437}
+.exl{flex:1 1 120px;font-size:13px;font-weight:650;line-height:1.35}
+.exl.ok{color:var(--accent)}.exl.no{color:var(--danger)}
+
+/* toast */
+.toast{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top));transform:translate(-50%,-90px);z-index:80;display:flex;align-items:center;gap:12px;padding:10px 12px 10px 16px;border-radius:14px;background:var(--ink);color:var(--bg);font-weight:600;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.3);transition:transform .25s cubic-bezier(.16,1,.3,1);max-width:calc(100vw - 24px)}
+.toast.show{transform:translate(-50%,0)}
+.toast button{font-weight:800;color:var(--accent);padding:6px 10px;border-radius:8px;background:rgba(127,127,127,.2)}
+:root[data-theme=dark] .toast button{color:var(--accent-ink);background:var(--accent)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app" class="wrap"></div>
+<div id="tt" hidden></div>
+<div id="sheet" class="sw" hidden>
+  <div class="scrim" data-act="scrim"></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="grab"></div>
+    <div class="sheet-head"><h3 id="sheetTitle"></h3><button class="x" data-act="sheet-close" aria-label="Tutup">✕</button></div>
+    <div class="sheet-body" id="sheetBody"></div>
+    <div class="sheet-foot" id="sheetFoot"></div>
+  </div>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ============================================================
+   UTIL
+============================================================ */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const md = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+const plain = s => s.replace(/\*\*(.+?)\*\*/g, '$1');
+const wab = s => s.replace(/\*\*(.+?)\*\*/g, '*$1*');
+const uid = () => 'p' + Math.random().toString(36).slice(2, 8);
+const num = v => { v = parseInt(v, 10); return isNaN(v) ? 0 : v; };
+const sg = n => n > 0 ? '+' + n : '' + n;
+const fold = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+const chip = (t, tone = '') => `<span class="chip ${tone}">${esc(t)}</span>`;
+
+const mem = {}; let persistOK = true;
+const store = {
+  get(k) { try { const v = localStorage.getItem(k); if (v !== null) return v; } catch (e) { persistOK = false; } return mem[k] ?? null; },
+  set(k, v) { mem[k] = v; try { localStorage.setItem(k, v); } catch (e) { persistOK = false; } },
+  del(k) { delete mem[k]; try { localStorage.removeItem(k); } catch (e) {} }
+};
+try { localStorage.setItem('rd_t', '1'); localStorage.removeItem('rd_t'); } catch (e) { persistOK = false; }
+
+/* ============================================================
+   DATA — ATURAN (satu sumber untuk layar & teks WA)
+   item = string | {t, sub:[...]}   — **tebal**
+============================================================ */
+const GAMES = [
+{
+  id:'rummy-500', emoji:'🃏', title:'Rummy 500', sub:'Set & run, serok discard, kejar 500 poin', cat:'Strategi',
+  players:'3–8 pemain', sup:[3,4,5,6,7,8], decks:'1–2 dek', time:'30–45 mnt', level:'Sedang',
+  goal:'Kumpulkan poin tertinggi dari kombinasi kartu yang turun sampai total menembus 500.',
+  tags:['Set & Run','Serok Discard','Target 500'],
+  sections:[
+    {h:'Persiapan', items:[
+      '**Dek:** 1 dek (3–4 orang) atau 2 dek digabung (5–8 orang). Tanpa Joker.',
+      '**Bagi kartu:** masing-masing 7 kartu.',
+      '**Meja:** sisa kartu jadi tumpukan tertutup (Stock). Buka 1 kartu di sebelahnya sebagai tumpukan buang (Discard).',
+      '**Penting:** kartu buangan dijejer terbuka melebar agar semuanya terlihat.',
+      '**Stock habis:** kocok ulang kartu buangan (sisakan kartu paling ujung) jadi Stock baru.']},
+    {h:'Kombinasi (minimal 3 kartu)', items:[
+      '**Set:** 3–4 kartu angka sama, kembang bebas (7♠ 7♥ 7♦).',
+      '**Run:** 3+ kartu berurutan, kembang sama (4♣ 5♣ 6♣). As boleh rendah (A-2-3) atau tinggi (Q-K-A), tidak boleh memutar (K-A-2).']},
+    {h:'Alur giliran', items:[
+      {t:'**1. Ambil kartu (pilih satu):**', sub:[
+        'Ambil 1 kartu teratas dari Stock, **atau**',
+        'Serok Discard: ambil kartu mana saja dari jejeran buangan. Semua kartu di atasnya ikut diambil, dan kartu terbawah yang diserok wajib langsung diturunkan dalam kombinasi di giliran itu juga.']},
+      {t:'**2. Turun & tempel:**', sub:[
+        'Turunkan susunan di area depanmu sendiri.',
+        'Boleh menempel ke susunan sendiri maupun lawan, tapi kartu tempelan tetap ditaruh di areamu agar masuk hitungan poinmu.']},
+      '**3. Buang 1 kartu** ke ujung jejeran buangan (kecuali kartumu langsung habis).']},
+    {h:'Nilai kartu & skor ronde', items:[
+      'Ronde berhenti begitu ada pemain yang kartunya habis.',
+      '**As:** 15 poin (di Q-K-A atau A-A-A), 1 poin (di A-2-3). **J, Q, K:** 10. **2–10:** sesuai angka.',
+      '**Skor ronde** = poin kartu yang kamu turunkan − poin kartu tersisa di tangan. Bisa minus!']},
+    {h:'Pemenang', items:['Main beberapa ronde sampai ada yang total ≥ **500** (atau target kesepakatan). Poin tertinggi menang. 🏆']}
+  ]
+},
+{
+  id:'shithead-palace', emoji:'💩', title:'Shithead / Palace', sub:'3 lapis kartu, 2 reset & 10 bakar', cat:'Strategi',
+  players:'2–6 pemain', sup:[2,3,4,5,6], decks:'1–2 dek', time:'15–25 mnt', level:'Sedang',
+  goal:'Habiskan 3 lapis kartu (tangan, terbuka, tertutup) agar tidak jadi pemain terakhir yang masih pegang kartu.',
+  tags:['2 = Reset','10 = Bakar','4 Kembar Bakar'],
+  sections:[
+    {h:'Persiapan (9 kartu per orang)', items:[
+      '**Dek:** 1 dek tanpa Joker. Lebih dari 5 orang: gabung 2 dek.',
+      {t:'**Susun 3 lapis di depan masing-masing:**', sub:['3 kartu tertutup berjejer (dilarang diintip!)','3 kartu terbuka tepat di atasnya','3 kartu di tangan']},
+      '**Tukar kartu:** sebelum mulai, boleh menukar kartu tangan dengan kartu terbuka. Tips: taruh 2 / 10 / kartu besar di barisan terbuka.',
+      '**Meja:** sisa kartu tertutup di tengah sebagai Stock.']},
+    {h:'Urutan & kartu sakti', items:[
+      '**Urutan:** 3 (terkecil) – 4 – 5 – 6 – 7 – 8 – 9 – J – Q – K – A (terbesar). Kembang bebas.',
+      '**2 (Reset):** boleh turun di atas kartu apa pun. Nilai tumpukan jadi 2, pemain berikutnya bebas menaruh apa saja.',
+      '**10 (Bakar):** boleh turun di atas kartu apa pun. Seluruh tumpukan keluar dari game, lalu kamu **jalan lagi**.',
+      '**4 kembar beruntun (Bakar):** 4 kartu angka sama berturut-turut di meja (oleh satu atau beberapa pemain, mis. A taruh 777 lalu B taruh 7) → tumpukan terbakar, penaruh kartu ke-4 jalan lagi.']},
+    {h:'Cara main', items:[
+      {t:'**Jalan pertama (cek kartu tangan saja):**', sub:[
+        'Tanya dari angka terkecil: "Ada yang pegang 3?" Kartu terbuka dan kartu 2/10 tidak dihitung. Tidak ada → tanya 4, 5, dst.',
+        'Seri: yang punya kembar lebih banyak jalan duluan. Jika sama, adu kembang: ♠ > ♥ > ♣ > ♦.',
+        'Pemenang wajib membuang kartu itu sebagai langkah pertama.',
+        'Cara cepat: ronde 1 suit; ronde berikutnya si Shithead jalan duluan.']},
+      '**Giliran:** keluarkan 1 kartu (atau beberapa kembar, mis. 88 / JJJ) yang nilainya sama atau lebih tinggi dari kartu teratas. Tidak ada kombinasi seri/flush.',
+      '**Isi ulang tangan:** selama Stock ada, tarik kartu sampai tanganmu minimal 3 lembar.',
+      '**Urutan saat bakar:** taruh kartu pembakar → singkirkan tumpukan → tarik sampai 3 kartu → jalan lagi bebas.',
+      '**Tidak bisa jalan?** Jika tak punya kartu sama/lebih tinggi dan tak punya 2 atau 10, wajib angkat seluruh tumpukan tengah ke tanganmu. Giliran pindah.']},
+    {h:'Menghabiskan "3 lapis nyawa"', items:[
+      'Stock yang habis **tidak** dikocok ulang. Habiskan berurutan:',
+      '**Tahap 1 – Kartu tangan:** mainkan sampai Stock habis dan tanganmu 0.',
+      '**Tahap 2 – 3 kartu terbuka:** begitu tangan kosong, mainkan langsung dari meja ke tengah.',
+      '**Tahap 3 – 3 kartu tertutup (adu hoki):** pilih 1 acak, balik langsung ke tengah. Sah = aman. Gagal (lebih kecil) = angkat seluruh tumpukan, termasuk kartu itu.',
+      '**Mundur tahap:** kalau mengangkat tumpukan di Tahap 2 atau 3, habiskan dulu semua kartu di tanganmu sebelum menyentuh kartu terbuka/tertutup lagi.']},
+    {h:'Pemenang & yang kalah', items:[
+      'Yang menghabiskan seluruh 3 lapis langsung selamat dan keluar dari game.',
+      'Pemain terakhir yang masih pegang kartu menyandang gelar **"SHITHEAD"** dan wajib mengocok di ronde berikutnya. 😂']}
+  ]
+},
+{
+  id:'cheat-bohong', emoji:'🤥', title:'Cheat / Bohong-bohongan', sub:'Urutan As–K berputar, akting & teriak "BOHONG!"', cat:'Party',
+  players:'3–10 pemain', sup:[3,4,5,6,7,8,9,10], decks:'1–2 dek', time:'15–20 mnt', level:'Mudah',
+  goal:'Habiskan semua kartu di tangan duluan lewat akting, memori, dan tipu-tipu urutan angka.',
+  tags:['Urutan As–K','Bebas Bohong','Teriak Bohong!'],
+  sections:[
+    {h:'Persiapan', items:[
+      '**Dek:** 1 dek (3–5 orang) atau 2 dek (6–10 orang). Tanpa Joker.',
+      '**Bagi kartu:** bagikan HABIS secara merata (tidak ada sisa di tengah).']},
+    {h:'Cara main', items:[
+      '**Jalan & arah:** pemegang A♠ jalan duluan, lalu searah jarum jam.',
+      '**Hitungan berputar:** bukan adu besar kartu! Orang 1 sebut "As", orang 2 "2", lalu 3 → 4 → … → 10 → J → Q → K, lalu kembali ke As. Kembang bebas.',
+      '**Taruh kartu:** 1–4 lembar (maks. 8 jika 2 dek) secara **tertutup** di tengah. Satu giliran hanya mengklaim 1 angka dan wajib menaruh minimal 1 kartu (tidak boleh pass).',
+      '**Bebas bohong:** tak punya angka yang diminta? Taruh kartu apa saja sambil akting jujur.']},
+    {h:'Teriak "Bohong!"', items:[
+      '**Siapa boleh:** SEMUA pemain. Kalau barengan, yang tercepat jadi penuduh.',
+      '**Batas waktu:** hanya kartu pemain terakhir, sebelum pemain berikutnya menaruh kartu (jeda 2–3 detik; batas berpikir 10–15 detik).',
+      {t:'**Yang dibuka hanya taruhan terakhir:**', sub:[
+        '**Terbukti bohong** (minimal 1 lembar beda dari ucapan): si pembohong angkat SELURUH tumpukan.',
+        '**Ternyata jujur:** si penuduh yang angkat SELURUH tumpukan.']},
+      'Setelah itu pemain berikutnya melanjutkan hitungan di meja kosong. Tips: ingat kartu yang kebuka/diangkat lawan.']},
+    {h:'Pemenang', items:[
+      'Yang kartunya habis duluan menang. 🏆',
+      '**Kartu terakhir** masih bisa dituduh. Lolos = menang mutlak (meski bohong!). Ketahuan = batal menang dan angkat tumpukan. 😂']}
+  ]
+},
+{
+  id:'capsa-banting', emoji:'♠️', title:'Capsa Banting / Big Two', sub:'Standar internasional: 2♠ tertinggi & kombinasi poker', cat:'Strategi',
+  players:'4 pemain', sup:[4], decks:'1 dek', time:'20–30 mnt', level:'Sedang',
+  goal:'Habiskan 13 kartu di tangan duluan memakai satuan, pair, tris, dan kombinasi 5 kartu poker.',
+  tags:['2♠ Tertinggi','Poker Hands','Penalti ×1–×4'],
+  sections:[
+    {h:'Persiapan & urutan kartu', items:[
+      '**Bagi kartu:** 1 dek (52, tanpa Joker) dibagi habis ke 4 orang, 13 kartu masing-masing.',
+      '**Angka (lemah → kuat):** 3 < 4 < 5 < 6 < 7 < 8 < 9 < 10 < J < Q < K < A < 2.',
+      '**Kembang (lemah → kuat):** ♦ < ♣ < ♥ < ♠. **2♠** adalah kartu tertinggi.']},
+    {h:'Kombinasi yang sah', items:[
+      'Lawan wajib menimpa dengan jenis dan jumlah kartu yang sama persis, nilai lebih tinggi.',
+      '**Satuan**, **Pair** (2 kembar), **Tris** (3 kembar).',
+      {t:'**Kombinasi 5 kartu (lemah → kuat):**', sub:[
+        '**Straight:** 5 berurutan beda kembang (A-2-3-4-5 terendah, 10-J-Q-K-A tertinggi; J-Q-K-A-2 tidak sah).',
+        '**Flush:** 5 kartu acak, kembang sama semua.',
+        '**Full House:** tris + pair (adu angka tris).',
+        '**Four of a Kind:** 4 kembar + 1 kartu bebas.',
+        '**Straight Flush:** 5 berurutan kembang sama (terkuat).']}]},
+    {h:'Cara main', items:[
+      '**Pembuka:** pemegang 3♦ jalan duluan dan wajib menyertakan 3♦ (satuan, pair, tris, atau 5 kartu). Ronde berikutnya pemenang sebelumnya membuka bebas.',
+      '**Giliran:** searah jarum jam. Tidak kuat atau mau menahan? Bilang "PASS". Setelah pass, tidak bisa ikut lagi sampai putaran baru.',
+      '**Menang putaran:** jika 3 orang berturut-turut pass, pemain terakhir yang turun membuka kombinasi baru apa saja.']},
+    {h:'Pemenang & penalti', items:[
+      'Yang 13 kartunya habis duluan menang. 🏆',
+      {t:'**Poin kalah (sisa kartu):**', sub:['1–7 kartu: ×1 (1 poin/kartu)','8–9 kartu: ×2','10–12 kartu: ×3','13 kartu utuh: ×4 = **52 poin** 😂','Penalti terendah unggul.']}]}
+  ]
+},
+{
+  id:'rummy-klasik', emoji:'♦️', title:'Rummy Klasik', sub:'Set & run (A-2-3 saja), bonus Rummy 2×, target 100', cat:'Strategi',
+  players:'2–6 pemain', sup:[2,3,4,5,6], decks:'1–2 dek', time:'20–30 mnt', level:'Mudah',
+  goal:'Habiskan semua kartu di tangan duluan dengan menyusun Set & Run untuk mengejar 100 poin.',
+  tags:['Run A-2-3 Saja','Bonus Rummy 2×','Target 100'],
+  sections:[
+    {h:'Persiapan', items:[
+      '**Dek:** 1 dek (52, tanpa Joker). Main 5–6 orang: gabung 2 dek.',
+      '**Bagi kartu:** 2 orang = 10 kartu; 3–4 orang = 7 kartu; 5–6 orang = 6 kartu.',
+      '**Meja:** sisa kartu tertutup (Stock), buka 1 kartu di sebelahnya (Discard). Stock habis: kocok ulang Discard (sisakan kartu teratas).']},
+    {h:'Kombinasi (minimal 3 kartu)', items:[
+      '**Set:** 3–4 kartu angka sama, kembang bebas (7♠ 7♥ 7♦).',
+      '**Run:** 3+ kartu berurutan, kembang sama (4♣ 5♣ 6♣). As hanya untuk urutan rendah **A-2-3** (tidak bisa Q-K-A).']},
+    {h:'Alur giliran (searah jarum jam)', items:[
+      '**1. Ambil 1 kartu:** teratas dari Stock **atau** teratas dari Discard (hanya satu, tidak bisa serok banyak).',
+      {t:'**2. Turun & tempel:**', sub:[
+        'Punya Set/Run? Boleh langsung diturunkan terbuka, atau disimpan dulu untuk strategi "Rummy".',
+        'Boleh menempel ke susunan sendiri maupun lawan (di meja ada 4♣ 5♣ 6♣ → tempel 7♣).']},
+      '**3. Buang 1 kartu** ke Discard (kecuali kartumu langsung habis).']},
+    {h:'Menang & hitung poin', items:[
+      '**Menang ronde:** pemain pertama yang kartunya habis.',
+      '**Bonus "Rummy":** menurunkan SEMUA kartu sekaligus dalam 1 giliran (tanpa pernah menurunkan sebelumnya) → poin ×2.',
+      '**Poin pemenang** = nilai sisa kartu lawan: K, Q, J = 10; 2–10 = sesuai angka; As = 1.',
+      '**Juara:** total skor ≥ **100** (atau target kesepakatan). 🏆']}
+  ]
+},
+{
+  id:'mau-mau', emoji:'⚡', title:'Mau-Mau (Aturan Resmi)', sub:'1 kartu per giliran, 7 = +2, pantangan J, teriak "MAU!"', cat:'Party',
+  players:'2–7 pemain', sup:[2,3,4,5,6,7], decks:'1–2 dek', time:'10–15 mnt', level:'Mudah',
+  goal:'Habiskan semua kartu di tangan duluan (bukan ditutup kartu J) dan jangan lupa teriak "MAU!".',
+  tags:['7 = +2 Tumpuk','Pantangan J','Teriak MAU!'],
+  sections:[
+    {h:'Persiapan', items:[
+      '**Dek:** 1 dek tanpa Joker. Lebih dari 5 orang: gabung 2 dek.',
+      '**Bagi kartu:** 5 kartu tertutup per orang (main berdua: 7 kartu).',
+      '**Meja:** sisa jadi Stock tertutup, buka 1 kartu di sebelahnya (Discard). Jika kartu pembuka 7 / As / Q / J, efeknya diabaikan: kembalikan ke tengah dan buka kartu baru.',
+      '**Stock habis:** kocok ulang Discard (sisakan kartu teratas).']},
+    {h:'Cara main (1 kartu per giliran)', items:[
+      'Keluarkan **hanya 1 lembar** yang angkanya sama **atau** kembangnya sama dengan kartu teratas (tidak boleh beberapa sekaligus).',
+      'Tidak punya yang cocok? Ambil 1 kartu dari Stock. Kalau cocok, boleh langsung dikeluarkan.']},
+    {h:'Efek kartu spesial', items:[
+      '**7 (+2):** pemain berikutnya ambil 2 kartu dan kehilangan giliran. Bisa ditumpuk dengan 7 lagi: +4, +6, dst.',
+      '**As (Skip):** pemain berikutnya dilewati.',
+      '**Queen (Reverse):** putar balik arah giliran.',
+      {t:'**Jack (Wild):** boleh turun di atas kartu apa pun, KECUALI saat terkena serangan 7. Pilih kembang baru yang wajib diikuti.', sub:[
+        'Tidak boleh ditumpuk langsung dengan J lagi.',
+        '**Tidak boleh jadi penutup kemenangan:** jika kartu terakhirmu J, boleh dibuang dan ganti kembang, tapi belum menang. Tarik 1 kartu lagi.']}]},
+    {h:'Aturan emas & pemenang', items:[
+      '**Sisa 1 kartu:** wajib teriak **"MAU!"** sebelum giliran selesai. Ketahuan lupa = ambil 2 kartu.',
+      '**Menang:** yang kartunya habis duluan (bukan dengan J) teriak **"MAU-MAU!"**. 🏆']}
+  ]
+},
+{
+  id:'president-daifugo', emoji:'👑', title:'President / Daifugo / Adu Kasta', sub:'Naik kasta, malak kartu & kudeta revolusi', cat:'Strategi',
+  players:'3–8 pemain', sup:[3,4,5,6,7,8], decks:'1–2 dek', time:'20–30 mnt', level:'Sedang',
+  goal:'Habiskan kartu duluan untuk jadi President dan memalak kartu terbaik dari Scum.',
+  tags:['Malak Kartu','5 Kasta','Revolusi!'],
+  sections:[
+    {h:'Persiapan & urutan kartu', items:[
+      '**Dek:** 3–6 orang 1 dek (52); 7–8 orang 2 dek (104). Tanpa Joker.',
+      '**Bagi kartu:** bagikan HABIS merata (selisih 1 kartu tidak masalah).',
+      '**Urutan:** 3 < 4 < 5 < 6 < 7 < 8 < 9 < 10 < J < Q < K < A < 2. Kembang tidak diadu.']},
+    {h:'Kombinasi & cara main', items:[
+      '**Hanya kembar:** satuan, pair, tris, four of a kind. Tidak ada seri/flush.',
+      '**Jalan duluan:** ronde 1 pemegang 3♦ (wajib menyertakan 3♦). Ronde 2+: PRESIDENT membuka dengan kartu bebas.',
+      '**Menimpa (searah jarum jam):** keluarkan jumlah lembar sama persis dengan angka lebih tinggi, atau "PASS".',
+      '**Clear:** jika semua lawan berturut-turut pass (atau ada yang mengeluarkan 2 sesuai jumlah lembarnya), tumpukan disingkirkan dan pemain terakhir yang turun membuka bebas.']},
+    {h:'Kasta & ritual "malak kartu"', items:[
+      {t:'**Gelar menurut urutan selesai:**', sub:[
+        '5+ orang: President 👑, Vice President 🎖️, Citizen 🧑 (tengah), Vice Scum 🧹, Scum 💩',
+        '4 orang: President, Vice President, Vice Scum, Scum',
+        '3 orang: President, Citizen, Scum']},
+      '**Sebelum ronde baru:** Scum mengumpulkan, mengocok, dan membagikan kartu.',
+      '**Malak:** Scum menyerahkan 2 kartu terbaik (1 jika main bertiga) ke President; President membalas 2 kartu sampah.',
+      '**Vice:** Vice Scum ↔ Vice President tukar 1 kartu terbaik ↔ 1 kartu sampah (jika ≥ 4 orang).']},
+    {h:'Opsional: "Revolusi!" 🔥', items:[
+      'Mengeluarkan **4 kartu kembar sekaligus** (1 dek) boleh meneriakkan "REVOLUSI!".',
+      'Urutan kekuatan terbalik sampai ronde berakhir: 3 terkuat, 2 terlemah! 😂']}
+  ]
+},
+{
+  id:'spoons-rebutan', emoji:'🥄', title:'Spoons / Rebutan Benda', sub:'Estafet cepat 4 kembar, benda = pemain − 1', cat:'Party',
+  players:'3–10 pemain', sup:[3,4,5,6,7,8,9,10], decks:'1–2 dek', time:'10–15 mnt', level:'Mudah',
+  goal:'Kumpulkan 4 kartu kembar dan jangan jadi orang terakhir yang tidak kebagian benda di tengah meja.',
+  tags:['Estafet Tanpa Jeda','Benda = Pemain − 1','S-P-O-O-N-S'],
+  sections:[
+    {h:'Persiapan', items:[
+      '**Benda:** taruh benda aman (sendok plastik, korek, spidol) di tengah sebanyak **PEMAIN − 1** (5 orang = 4 benda).',
+      '**Dek:** 1 dek tanpa Joker (2 dek jika ≥ 9 orang).',
+      '**Bagi kartu:** tentukan Pemain 1 lewat suit/cabut kartu tertinggi. Ia mengocok, membagi 4 kartu tertutup per orang, dan menaruh sisa di sebelahnya sebagai Stock.']},
+    {h:'Cara main (estafet cepat)', items:[
+      '**Target:** 4 kartu angka sama (7♠ 7♥ 7♦ 7♣).',
+      {t:'**Alur operan:**', sub:[
+        'Pemain 1 ambil 1 kartu dari Stock, pilih 1 kartu buangan, oper tertutup ke pemain di kirinya. Ia baru boleh menarik lagi setelah operan sebelumnya diambil.',
+        'Pemain berikutnya mengambil operan, memilih 1 buangan, lalu mengopernya lagi — terus mengalir tanpa jeda.',
+        'Pemain terakhir membuang kartu tak terpakai ke Discard.']},
+      '**Stock habis:** kocok ulang Discard dan taruh lagi di sebelah Pemain 1.']},
+    {h:'Rebutan benda & pembuktian ⚡', items:[
+      '**Pemicu:** begitu ada yang punya 4 kembar, ia mengambil 1 benda (disambar langsung **atau** diam-diam sambil terus berakting).',
+      '**Ikut rebutan:** setelah benda pertama diambil, SEMUA pemain boleh berebut sisa benda (walau belum 4 kembar).',
+      {t:'**Wajib buka bukti:** setelah benda habis, pengambil pertama membuka 4 kartunya.', sub:[
+        'Sah (4 kembar): pemain yang tidak kebagian benda **KALAH** ronde.',
+        'Bohong / salah sambar: pengambil pertama **KALAH**, yang tidak kebagian selamat.']}]},
+    {h:'Penentuan pemenang', items:[
+      '**Pergantian posisi:** ronde berikutnya posisi Pemain 1 bergeser 1 kursi searah jarum jam.',
+      {t:'**Format tamat (pilih satu):**', sub:[
+        '**Eliminasi:** yang kalah gugur, kurangi 1 benda, lanjut sampai tersisa 1 pemenang. 🏆',
+        '**Huruf hukuman:** semua tetap main; tiap kalah dapat 1 huruf dari S-P-O-O-N-S. Yang hurufnya lengkap duluan kalah total. 😂']}]}
+  ]
+},
+{
+  id:'kemps-kent', emoji:'🕵️', title:'Kemps / Kent / Kode Rahasia', sub:'Tim 2v2 berhadapan: tukar serentak & counter-kemps', cat:'Tim',
+  players:'4, 6, atau 8 (tim)', sup:[4,6,8], decks:'1 dek', time:'10–20 mnt', level:'Sedang',
+  goal:'Kumpulkan 4 kartu kembar dan beri kode rahasia ke rekan setim agar ia teriak "KEMPS!" sampai 5 poin.',
+  tags:['Tim 2v2','Kemps +1 / Double +2','Counter ±1'],
+  sections:[
+    {h:'Persiapan', items:[
+      '**Tim:** pasangan 2 orang (4 orang = 2 tim; 6 = 3 tim; 8 = 4 tim). Rekan setim duduk berhadapan.',
+      '**Kode rahasia:** diskusikan 1 menit sebelum mulai (kedip mata kiri, pegang kuping, dll. Dilarang kode suara/ucapan!).',
+      '**Bagi kartu:** 1 dek tanpa Joker. 4 kartu tertutup per orang, lalu buka 4 kartu di tengah meja. Sisa jadi Stock di pinggir meja.']},
+    {h:'Cara main (tukar serentak, tanpa giliran!)', items:[
+      'Begitu aba-aba "Mulai!", semua pemain bebas menukar 1 kartu tangannya dengan 1 kartu terbuka di tengah, kapan pun.',
+      '**Aturan tangan:** selalu 4 lembar. Taruh dulu 1 kartu buangan ke tengah, baru ambil yang kamu mau.',
+      '**Macet** (tak ada yang mau tukar): semua sepakat membuang 4 kartu tengah ke Discard, lalu buka 4 kartu baru dari Stock.']},
+    {h:'Kode & teriak "KEMPS!" (+1) 🎯', items:[
+      'Dapat 4 kartu kembar (Q♠ Q♥ Q♦ Q♣)? Kamu **DILARANG TERIAK SENDIRI**.',
+      'Kirim kode rahasia halus ke rekan di seberang meja.',
+      'Rekan yang menangkap kode berteriak **"KEMPS!"**, kamu buka 4 kartu sebagai bukti, tim dapat **+1 poin**.',
+      'Jika kalian berdua kebetulan sama-sama punya 4 kembar, rekanmu teriak **"DOUBLE KEMPS!"** = **+2 poin**.']},
+    {h:'Potong kode lawan: "COUNTER-KEMPS!" 🚨', items:[
+      'Curiga lawan sudah punya 4 kembar dan memberi kode? Teriak **"COUNTER-KEMPS!"** sambil menunjuk pemainnya.',
+      '**Freeze & buka bukti:** semua tangan berhenti dan yang ditunjuk langsung membuka 4 kartunya. Ketahuan buru-buru menukar = poin otomatis untuk penuduh.',
+      '**Benar:** timmu mencuri **+1 poin**.',
+      '**Salah:** timmu kena penalti **−1 poin**. (Boleh pura-pura kasih kode palsu buat memancing!) 😂']},
+    {h:'Pemenang', items:[
+      'Setelah 1 ronde, tim boleh mengganti kode jika sudah ketahuan.',
+      'Tim pertama yang mencapai **5 poin** (atau target kesepakatan) menang. 🏆']}
+  ]
+}
+];
+
+
+/* ============================================================
+   CONTOH KARTU  (format baris: [kartu, keterangan, 1=sah | 0=salah | kosong=info])
+   token: 7♠ 10♥ A♦  ·  ?? = tertutup  ·  | = pemisah  ·  teks lain = operator
+============================================================ */
+const SEQ = 'A♠ 2♠ 3♠ 4♠ 5♠ 6♠ 7♠ 8♠ 9♠ 10♠ J♠ Q♠ K♠';
+const EX = {
+'rummy-500': [
+  {t:'Set (kembar)', rows:[['7♠ 7♥ 7♦','Sah: 3 kartu angka sama',1],['9♠ 9♥ 9♦ 9♣','Sah: 4 kembar',1],['7♠ 7♥','Belum sah: minimal 3 kartu',0],['7♠ 7♥ 8♦','Bukan set: angka berbeda',0]]},
+  {t:'Run (seri)', rows:[['4♣ 5♣ 6♣','Sah: berurutan, kembang sama',1],['A♥ 2♥ 3♥','Sah: As rendah (As = 1 poin)',1],['Q♠ K♠ A♠','Sah: As tinggi (As = 15 poin)',1],['K♦ A♦ 2♦','Tidak sah: tidak boleh memutar',0],['4♣ 5♥ 6♣','Tidak sah: kembang beda',0]]},
+  {t:'Serok tumpukan buang', rows:[['3♠ 9♥ K♦ 5♣','Jejeran buangan (kiri = paling lama)'],['9♥ K♦ 5♣','Serok 9♥ → ketiga kartu ini masuk ke tanganmu'],['9♥ 9♠ 9♦','9♥ wajib langsung diturunkan, mis. Set bersama 9♠ 9♦ di tangan',1]]},
+  {t:'Hitung skor ronde', rows:[['7♠ 7♥ 7♦','Turun di meja: 7+7+7 = 21 poin'],['K♣ 4♦','Sisa di tangan: 10+4 = 14 poin'],['','Skor ronde = 21 − 14 = +7']]}
+],
+'shithead-palace': [
+  {t:'Susunan 3 lapis (per pemain)', rows:[['?? ?? ??','3 kartu tertutup — dilarang diintip'],['K♠ 2♦ 10♥','3 kartu terbuka — tips: taruh kartu sakti di sini'],['4♣ 9♥ J♠','3 kartu di tangan']]},
+  {t:'Kartu teratas di meja: 8♦', rows:[['8♠','Boleh: angka sama',1],['8♠ 8♥','Boleh: beberapa kembar sekaligus',1],['J♣','Boleh: lebih tinggi',1],['5♣','Tidak boleh: lebih kecil (kecuali 2 / 10)',0]]},
+  {t:'Kartu sakti', rows:[['K♠ 2♦','2 = Reset: nilai tumpukan jadi 2, pemain berikutnya bebas'],['9♥ 10♠','10 = Bakar: tumpukan keluar game, kamu jalan lagi'],['7♠ 7♥ 7♦ 7♣','4 kembar beruntun = tumpukan terbakar, penaruh ke-4 jalan lagi']]}
+],
+'cheat-bohong': [
+  {t:'Urutan hitungan berputar (bukan adu besar)', rows:[[SEQ,'Giliran 1 = As, giliran 2 = 2, … lalu balik ke As']]},
+  {t:'Giliranmu: angka 7, taruh 2 kartu tertutup', rows:[['?? ??','Yang lain hanya melihat kartu tertutup'],['7♣ 7♦','Dibuka: jujur → si penuduh angkat seluruh tumpukan',1],['7♣ 9♠','Dibuka: ada yang beda → si pembohong angkat seluruh tumpukan',0]]}
+],
+'capsa-banting': [
+  {t:'Urutan kekuatan', rows:[['3♠ 4♠ 5♠ 6♠ 7♠ 8♠ 9♠ 10♠ J♠ Q♠ K♠ A♠ 2♠','Angka: lemah → kuat (2 tertinggi)'],['3♦ 3♣ 3♥ 3♠','Kembang: ♦ < ♣ < ♥ < ♠ (lemah → kuat)']]},
+  {t:'Kombinasi 1–3 kartu', rows:[['9♥','Satuan'],['J♠ J♦','Pair'],['5♣ 5♦ 5♠','Tris']]},
+  {t:'Kombinasi 5 kartu (lemah → kuat)', rows:[['6♣ 7♦ 8♠ 9♥ 10♣','1. Straight: berurutan, kembang campur'],['2♥ 5♥ 8♥ J♥ K♥','2. Flush: kembang sama semua'],['8♠ 8♥ 8♦ K♣ K♠','3. Full House: tris + pair'],['9♠ 9♥ 9♦ 9♣ 4♠','4. Four of a Kind: 4 kembar + 1 kartu bebas'],['5♠ 6♠ 7♠ 8♠ 9♠','5. Straight Flush: terkuat']]},
+  {t:'Batas Straight', rows:[['A♠ 2♦ 3♣ 4♥ 5♠','Straight terendah',1],['10♦ J♣ Q♥ K♠ A♦','Straight tertinggi',1],['J♣ Q♥ K♠ A♦ 2♠','Tidak sah: tidak bisa lewat As ke 2',0]]}
+],
+'rummy-klasik': [
+  {t:'Set & Run', rows:[['7♠ 7♥ 7♦','Set sah',1],['4♣ 5♣ 6♣','Run sah',1],['A♥ 2♥ 3♥','Run sah: As hanya rendah',1],['Q♠ K♠ A♠','Tidak sah di Rummy Klasik',0]]},
+  {t:'Tempel (laying off)', rows:[['4♣ 5♣ 6♣','Susunan di meja'],['4♣ 5♣ 6♣ 7♣','Kamu tempel 7♣ dari tanganmu',1]]},
+  {t:'Bonus Rummy ×2 (7 kartu turun sekaligus)', rows:[['7♠ 7♥ 7♦ | 4♣ 5♣ 6♣ 7♣','Seluruh tangan jadi Set + Run dalam 1 giliran, tanpa pernah turun sebelumnya → poin ×2',1]]}
+],
+'mau-mau': [
+  {t:'Kartu teratas di meja: 8♥', rows:[['8♠','Boleh: angka sama',1],['K♥','Boleh: kembang sama',1],['5♣','Tidak boleh → ambil 1 dari Stock',0]]},
+  {t:'Kartu spesial', rows:[['7♦','Serangan +2: pemain berikutnya ambil 2 & kehilangan giliran'],['A♣','Skip: pemain berikutnya dilewati'],['Q♠','Reverse: arah giliran berbalik'],['J♥','Wild: bebas pilih kembang baru (tidak boleh saat terkena 7)']]},
+  {t:'Tumpuk serangan 7', rows:[['7♥ 7♠ 7♦','+2 → +4 → +6: pemain terakhir yang terkena mengambil 6 kartu']]}
+],
+'president-daifugo': [
+  {t:'Urutan kekuatan', rows:[['3♠ 4♠ 5♠ 6♠ 7♠ 8♠ 9♠ 10♠ J♠ Q♠ K♠ A♠ 2♠','Lemah → kuat (3 terlemah, 2 terkuat). Kembang tidak diadu.']]},
+  {t:'Menimpa harus jumlah lembar sama', rows:[['6♠ 6♦','Pair di meja'],['9♥ 9♣','Sah: pair lebih tinggi',1],['K♠','Tidak sah: jumlah lembar harus sama',0]]},
+  {t:'Ritual malak kartu', rows:[['2♠ A♦','Scum menyerahkan 2 kartu terbaik ke President'],['3♣ 4♦','President membalas 2 kartu sampah ke Scum']]},
+  {t:'Revolusi (opsional)', rows:[['9♠ 9♥ 9♦ 9♣','4 kembar sekaligus → "REVOLUSI!": 3 jadi terkuat, 2 jadi terlemah']]}
+],
+'spoons-rebutan': [
+  {t:'Target: 4 kartu kembar', rows:[['7♠ 7♥ 7♦ 7♣','Siap rebut benda!',1]]},
+  {t:'Estafet', rows:[['7♠ 7♥ 7♦ 9♣','Tanganmu butuh 1 kartu 7: kartu 9♣ yang dioper'],['??','Operan selalu tertutup ke pemain di kirimu']]}
+],
+'kemps-kent': [
+  {t:'Tukar serentak', rows:[['Q♠ Q♥ Q♦ 5♣','Tanganmu (selalu 4 kartu)'],['Q♣ 2♦ 8♠ K♥','4 kartu terbuka di tengah meja'],['Q♠ Q♥ Q♦ Q♣','Tukar 5♣ dengan Q♣ → 4 kembar! Beri kode ke rekan',1]]},
+  {t:'Poin', rows:[['Q♠ Q♥ Q♦ Q♣','Rekan teriak "KEMPS!" = +1'],['Q♠ Q♥ Q♦ Q♣ | 9♠ 9♥ 9♦ 9♣','Kalian berdua punya 4 kembar = "DOUBLE KEMPS!" +2']]}
+]
+};
+GAMES.forEach(g => { g.ex = EX[g.id] || []; });
+
+/* ============================================================
+   STATE
+============================================================ */
+const KEY = 'remideck3_';
+let S = null, cur = null, route = { n: 'home' }, stack = [], tt = false, histOpen = false, sheetKind = null, draft = null, timers = [];
+const F = { q: '', pl: 'all', cat: 'all' };
+
+const P = id => S.players.find(p => p.id === id);
+const nm = id => P(id) ? P(id).name : '(dihapus)';
+const cnt = (pid, k) => S.rounds.filter(r => r.p === pid && r.k === k).length;
+const last = () => S.rounds[S.rounds.length - 1];
+function rankRows(rows, cmp) {
+  rows.sort(cmp);
+  rows.forEach((r, i) => { r.rank = i > 0 && cmp(rows[i - 1], r) === 0 ? rows[i - 1].rank : i + 1; });
+  return rows;
+}
+const stp = (name, val, step = 1, min = 0, max = 9999) =>
+  `<div class="stp"><button type="button" data-step="${-step}" aria-label="Kurangi">−</button><input type="number" inputmode="numeric" name="${name}" value="${val}" min="${min}" max="${max}"><button type="button" data-step="${step}" aria-label="Tambah">＋</button></div>`;
+const names = (ent, n) => ent === 'Tim' ? ['Tim A', 'Tim B', 'Tim C', 'Tim D'].slice(0, n) : Array.from({ length: n }, (_, i) => 'Pemain ' + (i + 1));
+
+function fresh(g) {
+  return { v: 3, players: names(g.ent, g.def).map(n => ({ id: uid(), name: n })), settings: { ...g.settings }, rounds: [] };
+}
+function load(g) {
+  try {
+    const raw = store.get(KEY + g.id);
+    if (raw) {
+      const d = JSON.parse(raw);
+      if (d && Array.isArray(d.players) && Array.isArray(d.rounds) && d.players.every(p => p && p.id && typeof p.name === 'string'))
+        return { v: 3, players: d.players, rounds: d.rounds, settings: { ...g.settings, ...(d.settings || {}) } };
+    }
+  } catch (e) {}
+  return fresh(g);
+}
+const save = () => store.set(KEY + cur.id, JSON.stringify(S));
+function hasProgress(g) {
+  try { const d = JSON.parse(store.get(KEY + g.id) || 'null'); return !!(d && d.rounds && d.rounds.length); } catch (e) { return false; }
+}
+function mutate(label, fn, opts = {}) {
+  stack.push(JSON.stringify(S)); if (stack.length > 30) stack.shift();
+  fn(S); save(); renderView(); if (sheetKind === 'settings' && !opts.keepSheet) fillSettings();
+  if (label) toast(label, true);
+}
+function undo() {
+  const p = stack.pop(); if (!p) return;
+  S = JSON.parse(p); save(); renderView(); if (sheetKind === 'settings') fillSettings(); toast('Dibatalkan');
+}
+
+/* ============================================================
+   ENGINE PER PERMAINAN
+============================================================ */
+const hist = (arr) => arr.join('');
+const capsaPts = n => n === 0 ? 0 : n <= 7 ? n : n <= 9 ? n * 2 : n <= 12 ? n * 3 : 52;
+const capsaMul = n => n === 0 ? 'MENANG' : n <= 7 ? '×1' : n <= 9 ? '×2' : n <= 12 ? '×3' : '×4';
+const R = { P: { l: '👑 President', pts: 2 }, VP: { l: '🎖️ Vice President', pts: 1 }, C: { l: '🧑 Citizen', pts: 0 }, VS: { l: '🧹 Vice Scum', pts: -1 }, S: { l: '💩 Scum', pts: -2 } };
+const presRank = (pos, n) => pos === 0 ? R.P : (n >= 4 && pos === 1) ? R.VP : pos === n - 1 ? R.S : (n >= 4 && pos === n - 2) ? R.VS : R.C;
+const roundTitle = g => g.kind === 'sheet' ? 'Ronde ' + (S.rounds.length + 1) : '';
+
+function evRows(g, valFn, cmp, decorate) {
+  const rows = S.players.map(p => { const r = { p, v: valFn(p) }; decorate(r, p); return r; });
+  return rankRows(rows, cmp);
+}
+const evAct = (k, label, tone) => `<button class="btn ${tone}" data-act="ev" data-kind="${k}">${label}</button>`;
+
+Object.assign(GAMES.find(g => g.id === 'rummy-500'), {
+  kind: 'sheet', ent: 'Pemain', min: 3, max: 8, def: 3, settings: { target: 500 }, tgt: { label: 'Target poin', min: 50, step: 50 },
+  total(pid) { return S.rounds.reduce((a, r) => a + (r.e[pid] ? r.e[pid].d - r.e[pid].h : 0), 0); },
+  rows() {
+    const rows = rankRows(S.players.map(p => { const s = this.total(p.id); return { p, s, valueText: s, unit: 'poin', tone: s < 0 ? 'neg' : '', progress: s / S.settings.target }; }), (a, b) => b.s - a.s);
+    rows.forEach(r => r.lead = r.rank === 1 && S.rounds.length > 0 && r.s > 0); return rows;
+  },
+  winner() { if (!S.rounds.length) return null; const t = this.rows()[0]; return t.s >= S.settings.target ? t.p.name : null; },
+  form() { return S.players.map(p => `<div class="frow" data-pid="${p.id}"><div class="frow-h"><b>${esc(p.name)}</b><span class="net" data-net>0</span></div><div class="two"><div><span class="lbl pos">Turun (+)</span>${stp('d_' + p.id, 0, 5)}</div><div><span class="lbl neg">Sisa (−)</span>${stp('h_' + p.id, 0, 5)}</div></div></div>`).join(''); },
+  preview(f) { S.players.forEach(p => { const n = num(f.elements['d_' + p.id].value) - num(f.elements['h_' + p.id].value); const el = f.querySelector(`[data-pid="${p.id}"] [data-net]`); el.textContent = sg(n); el.className = 'net ' + (n > 0 ? 'pos' : n < 0 ? 'neg' : ''); }); },
+  read(f) { const e = {}; S.players.forEach(p => e[p.id] = { d: num(f.elements['d_' + p.id].value), h: num(f.elements['h_' + p.id].value) }); return { round: { id: uid(), e } }; },
+  hist(r) { return hist(Object.entries(r.e).map(([id, e]) => chip(nm(id) + ' ' + sg(e.d - e.h), e.d - e.h >= 0 ? 'pos' : 'neg'))); }
+});
+
+Object.assign(GAMES.find(g => g.id === 'rummy-klasik'), {
+  kind: 'sheet', ent: 'Pemain', min: 2, max: 6, def: 3, settings: { target: 100 }, tgt: { label: 'Target poin', min: 20, step: 10 },
+  total(pid) { return S.rounds.reduce((a, r) => a + (r.w === pid ? r.aw : 0), 0); },
+  rows() {
+    const rows = rankRows(S.players.map(p => { const s = this.total(p.id); return { p, s, valueText: s, unit: 'poin', progress: s / S.settings.target }; }), (a, b) => b.s - a.s);
+    rows.forEach(r => r.lead = r.rank === 1 && r.s > 0); return rows;
+  },
+  winner() { if (!S.rounds.length) return null; const t = this.rows()[0]; return t.s >= S.settings.target ? t.p.name : null; },
+  form() {
+    return `<span class="lbl">Pemenang ronde</span><div class="pick">${S.players.map(p => `<label><input type="radio" name="w" value="${p.id}"><span>${esc(p.name)}</span></label>`).join('')}</div>
+    <span class="lbl">Total nilai sisa kartu lawan</span>${stp('base', 0, 5)}
+    <label class="check"><input type="checkbox" name="dbl"><div>⚡ Bonus "Rummy" ×2<small>Semua kartu turun sekaligus dalam 1 giliran</small></div></label>
+    <div class="pvbox" id="pv">+0 poin</div>`;
+  },
+  preview(f) { const b = num(f.elements.base.value) * (f.elements.dbl.checked ? 2 : 1); $('#pv').textContent = '+' + b + ' poin'; },
+  read(f) { const w = f.elements.w.value; if (!w) return { err: 'Pilih pemenang ronde dulu' }; const base = num(f.elements.base.value), dbl = f.elements.dbl.checked; return { round: { id: uid(), w, base, dbl, aw: dbl ? base * 2 : base } }; },
+  hist(r) { return chip(nm(r.w) + ' +' + r.aw, 'pos') + (r.dbl ? chip('Rummy ×2', 'gold') : ''); }
+});
+
+Object.assign(GAMES.find(g => g.id === 'capsa-banting'), {
+  kind: 'sheet', ent: 'Pemain', min: 4, max: 4, def: 4, fixed: true, settings: {},
+  pen(pid) { return S.rounds.reduce((a, r) => a + capsaPts(r.c[pid] ?? 0) * (pid in r.c ? 1 : 0), 0); },
+  wins(pid) { return S.rounds.filter(r => r.c[pid] === 0).length; },
+  rows() {
+    const lw = last() ? Object.keys(last().c).find(id => last().c[id] === 0) : null;
+    const rows = rankRows(S.players.map(p => { const s = this.pen(p.id), w = this.wins(p.id); return { p, s, w, valueText: s, unit: 'penalti', tone: s === 0 ? 'pos' : '', chips: chip('Menang ' + w + '×', 'pos') + (lw === p.id ? chip('▶ Jalan duluan', 'gold') : '') }; }), (a, b) => a.s - b.s || b.w - a.w);
+    rows.forEach(r => r.lead = r.rank === 1 && S.rounds.length > 0); return rows;
+  },
+  hint() { const l = last(); if (!l) return ''; const id = Object.keys(l.c).find(i => l.c[i] === 0); return id && P(id) ? `▶ Ronde berikutnya dibuka bebas oleh **${P(id).name}** (pemenang terakhir).` : ''; },
+  form() { return S.players.map(p => `<div class="frow" data-pid="${p.id}"><div class="frow-h"><b>${esc(p.name)}</b><span class="net pos" data-net>MENANG</span></div><span class="lbl">Sisa kartu (0–13)</span>${stp('c_' + p.id, 0, 1, 0, 13)}</div>`).join('') + `<p style="font-size:12.5px;color:var(--muted)">1–7 = ×1 · 8–9 = ×2 · 10–12 = ×3 · 13 = ×4 (52 poin)</p>`; },
+  preview(f) { S.players.forEach(p => { const n = Math.min(13, num(f.elements['c_' + p.id].value)); const el = f.querySelector(`[data-pid="${p.id}"] [data-net]`); el.textContent = n === 0 ? 'MENANG' : capsaMul(n) + ' = +' + capsaPts(n); el.className = 'net ' + (n === 0 ? 'pos' : 'neg'); }); },
+  read(f) { const c = {}; let z = 0; S.players.forEach(p => { const n = Math.min(13, num(f.elements['c_' + p.id].value)); c[p.id] = n; if (n === 0) z++; }); if (z !== 1) return { err: 'Harus tepat satu pemain dengan 0 kartu (pemenang)' }; return { round: { id: uid(), c } }; },
+  hist(r) { return hist(Object.entries(r.c).map(([id, n]) => n === 0 ? chip(nm(id) + ' 🏆', 'pos') : chip(nm(id) + ' +' + capsaPts(n) + ' (' + n + ' krt)', 'neg'))); }
+});
+
+Object.assign(GAMES.find(g => g.id === 'president-daifugo'), {
+  kind: 'sheet', ent: 'Pemain', min: 3, max: 8, def: 4, settings: {},
+  total(pid) { return S.rounds.reduce((a, r) => { const i = r.o.indexOf(pid); return i < 0 ? a : a + presRank(i, r.o.length).pts; }, 0); },
+  rows() {
+    const lo = last() ? last().o : [];
+    const rows = rankRows(S.players.map(p => { const s = this.total(p.id), i = lo.indexOf(p.id); return { p, s, valueText: sg(s), unit: 'poin', tone: s > 0 ? 'pos' : s < 0 ? 'neg' : '', chips: i >= 0 ? chip(presRank(i, lo.length).l, i === 0 ? 'gold' : '') : '' }; }), (a, b) => b.s - a.s);
+    rows.forEach(r => r.lead = r.rank === 1 && S.rounds.length > 0 && r.s > 0); return rows;
+  },
+  hint() {
+    const o = (last() ? last().o : []).filter(id => P(id)); const n = o.length; if (n < 3) return '';
+    const l = [`🔄 **Ritual ronde berikutnya**`, `💩 ${P(o[n - 1]).name} kocok dek & setor ${n <= 3 ? 1 : 2} kartu terbaik ➔ 👑 ${P(o[0]).name}`];
+    if (n >= 4) l.push(`🧹 ${P(o[n - 2]).name} setor 1 kartu terbaik ➔ 🎖️ ${P(o[1]).name}`);
+    l.push(`▶️ ${P(o[0]).name} (President) jalan duluan`); return l.join('\n');
+  },
+  openRound() { draft = []; sheetKind = 'pres'; openSheet('Urutan selesai · Ronde ' + (S.rounds.length + 1), '', '', true); drawOrder(); },
+  hist(r) { const n = r.o.length; return hist(r.o.map((id, i) => chip(nm(id) + ' ' + presRank(i, n).l.split(' ')[0] + ' ' + sg(presRank(i, n).pts), presRank(i, n).pts > 0 ? 'pos' : presRank(i, n).pts < 0 ? 'neg' : ''))); }
+});
+
+Object.assign(GAMES.find(g => g.id === 'shithead-palace'), {
+  kind: 'ev', ent: 'Pemain', min: 2, max: 6, def: 3, settings: {},
+  rows() {
+    const max = Math.max(0, ...S.players.map(p => cnt(p.id, 'lose')));
+    return evRows(this, p => cnt(p.id, 'lose'), (a, b) => a.v - b.v, (r, p) => { r.valueText = r.v; r.unit = 'shithead'; if (max > 0 && r.v === max) { r.sym = '💩'; r.tone = 'neg'; } });
+  },
+  hint() { const l = last(); return l && P(l.p) ? `🃏 Pengocok ronde berikutnya: **${P(l.p).name}** (si Shithead).` : ''; },
+  acts() { return evAct('lose', '💩 Jadi Shithead', 'bad'); },
+  label: { lose: 'jadi Shithead 💩' },
+  hist(r) { return chip(nm(r.p) + ' — Shithead', 'neg'); }
+});
+
+Object.assign(GAMES.find(g => g.id === 'cheat-bohong'), {
+  kind: 'ev', ent: 'Pemain', min: 3, max: 10, def: 4, settings: {},
+  rows() {
+    return evRows(this, p => cnt(p.id, 'win'), (a, b) => b.v - a.v || a.x - b.x, (r, p) => { r.x = cnt(p.id, 'pick'); r.valueText = r.v; r.unit = 'menang'; r.chips = chip('😂 ' + r.x + '× kena angkat', r.x ? 'gold' : ''); r.lead = false; }).map(r => (r.lead = r.rank === 1 && r.v > 0, r));
+  },
+  hint() { return S.rounds.length ? '' : '▶️ Pemegang A♠ jalan duluan.'; },
+  acts() { return evAct('win', '🏆 +1 Menang', 'good') + evAct('pick', '😂 +1 Kena angkat', 'warn'); },
+  label: { win: 'menang ronde 🏆', pick: 'kena angkat tumpukan' },
+  hist(r) { return chip(nm(r.p) + ' — ' + this.label[r.k], r.k === 'win' ? 'pos' : 'gold'); }
+});
+
+Object.assign(GAMES.find(g => g.id === 'mau-mau'), {
+  kind: 'ev', ent: 'Pemain', min: 2, max: 7, def: 3, settings: {},
+  rows() {
+    return evRows(this, p => cnt(p.id, 'win'), (a, b) => b.v - a.v || a.x - b.x, (r, p) => { r.x = cnt(p.id, 'forgot'); r.valueText = r.v; r.unit = 'menang'; r.chips = chip('⚠️ ' + r.x + '× lupa MAU', r.x ? 'neg' : ''); }).map(r => (r.lead = r.rank === 1 && r.v > 0, r));
+  },
+  acts() { return evAct('win', '🏆 MAU-MAU! Menang', 'good') + evAct('forgot', '⚠️ Lupa MAU (+2 kartu)', 'bad'); },
+  label: { win: 'teriak MAU-MAU & menang 🏆', forgot: 'lupa teriak MAU (+2 kartu)' },
+  hist(r) { return chip(nm(r.p) + ' — ' + this.label[r.k], r.k === 'win' ? 'pos' : 'neg'); }
+});
+
+const KK = { k1: ['+1 Kemps 🎯', 1, 'good'], k2: ['+2 Double 🔥', 2, 'warn'], c1: ['+1 Counter 🚨', 1, 'good'], cm: ['−1 Salah tuduh', -1, 'bad'] };
+Object.assign(GAMES.find(g => g.id === 'kemps-kent'), {
+  kind: 'ev', ent: 'Tim', min: 2, max: 4, def: 2, settings: { target: 5 }, tgt: { label: 'Target poin', min: 1, step: 1 },
+  total(pid) { return S.rounds.reduce((a, r) => a + (r.p === pid ? KK[r.k][1] : 0), 0); },
+  rows() {
+    const rows = rankRows(S.players.map(p => { const s = this.total(p.id); return { p, s, valueText: s, unit: 'poin', sym: '🕵️', tone: s < 0 ? 'neg' : '', progress: s / S.settings.target }; }), (a, b) => b.s - a.s);
+    rows.forEach(r => { r.lead = r.rank === 1 && r.s > 0; if (r.lead) r.sym = null; }); return rows;
+  },
+  winner() { if (!S.rounds.length) return null; const t = this.rows()[0]; return t.s >= S.settings.target ? t.p.name : null; },
+  acts() { return Object.entries(KK).map(([k, v]) => evAct(k, v[0], v[2])).join(''); },
+  hist(r) { const v = KK[r.k]; return chip(nm(r.p) + ' — ' + v[0], v[1] > 0 ? 'pos' : 'neg'); }
+});
+
+const sp = GAMES.find(g => g.id === 'spoons-rebutan');
+Object.assign(sp, {
+  kind: 'ev', ent: 'Pemain', min: 3, max: 10, def: 4, settings: { mode: 'letters' },
+  info() { const L = S.settings.mode === 'letters'; const dead = p => L ? cnt(p.id, 'lose') >= 6 : cnt(p.id, 'lose') >= 1; const alive = S.players.filter(p => !dead(p)); return { L, dead, alive }; },
+  rows() {
+    const { L, dead } = this.info(); const T = 'SPOONS';
+    return S.players.map((p, i) => {
+      const l = cnt(p.id, 'lose'), d = dead(p);
+      return { p, rank: i + 1, sym: d ? '💀' : '🥄', dim: d, valueText: L ? (d ? '💀' : l + '/6') : (d ? 'Gugur' : 'Aman'), unit: '', tone: d ? 'neg' : '',
+        extra: L ? `<div class="tokens">${[...T].map((c, k) => `<span class="${k < l ? 'on' : ''}">${c}</span>`).join('')}</div>` : '', disabled: d };
+    });
+  },
+  winner() { const { alive } = this.info(); return S.rounds.length && alive.length === 1 && S.players.length > 1 ? alive[0].name : null; },
+  top() {
+    const { alive } = this.info(); const L = S.settings.mode === 'letters';
+    return `<div class="seg sm"><button data-act="spmode" data-m="letters" class="${L ? 'on' : ''}">🔤 Huruf S-P-O-O-N-S</button><button data-act="spmode" data-m="elim" class="${!L ? 'on' : ''}">⚡ Eliminasi</button></div>
+    <div class="hint" style="font-weight:700;text-align:center">🥄 Taruh <span class="num">${Math.max(1, alive.length - 1)}</span> benda di tengah meja</div>`;
+  },
+  acts(p) { return `<button class="btn bad" data-act="ev" data-kind="lose" ${this.rows().find(r => r.p.id === p.id).disabled ? 'disabled' : ''}>Kalah ronde ini</button>`; },
+  hist(r) { return chip(nm(r.p) + ' — kalah ronde', 'neg'); }
+});
+
+/* ============================================================
+   VIEW
+============================================================ */
+const app = $('#app');
+const themeIcon = () => document.documentElement.dataset.theme === 'dark' ? '☀️' : '🌙';
+
+function matches(g) {
+  const pl = { all: () => true, '9-10': x => x.sup.includes(9) || x.sup.includes(10) }[F.pl] || (x => x.sup.includes(+F.pl));
+  if (!pl(g)) return false;
+  if (F.cat !== 'all' && g.cat !== F.cat) return false;
+  if (F.q.trim()) {
+    const txt = [g.title, g.sub, g.goal, g.cat, g.players, ...g.tags, ...g.ex.flatMap(b => [b.t, ...b.rows.map(r => r[1])]), ...g.sections.flatMap(s => [s.h, ...s.items.flatMap(i => typeof i === 'string' ? [i] : [i.t, ...i.sub])])].map(plain).join(' ');
+    return fold(txt).includes(fold(F.q.trim()));
+  }
+  return true;
+}
+function chipsHtml() {
+  const pls = [['all', 'Semua'], ...[2, 3, 4, 5, 6, 7, 8].map(n => [String(n), String(n)]), ['9-10', '9–10']];
+  const cats = [['all', 'Semua'], ['Strategi', 'Strategi'], ['Party', 'Party / Bluffing'], ['Tim', 'Tim']];
+  return `<div class="flabel">Jumlah pemain</div><div class="chips-row">${pls.map(([v, l]) => `<button class="fchip ${F.pl === v ? 'on' : ''}" data-act="fpl" data-v="${v}">${l}</button>`).join('')}</div>
+  <div class="flabel">Kategori</div><div class="chips-row">${cats.map(([v, l]) => `<button class="fchip ${F.cat === v ? 'on' : ''}" data-act="fcat" data-v="${v}">${l}</button>`).join('')}</div>`;
+}
+function cardHtml(g) {
+  const on = hasProgress(g);
+  return `<article class="gcard" data-act="open" data-id="${g.id}" data-tab="rules" tabindex="0" role="button" aria-label="Buka ${esc(g.title)}">
+    <div class="gc-top"><div class="em">${g.emoji}${on ? '<i class="dot" title="Skor berjalan"></i>' : ''}</div><div><h2>${esc(g.title)}</h2><p>${esc(g.sub)}</p></div></div>
+    <p class="goal">${esc(g.goal)}</p>
+    <div class="meta"><span>👥 ${g.players}</span><span>🃏 ${g.decks}</span><span>⏱ ${g.time}</span><span class="lvl">${g.level}</span></div>
+    <div class="gc-act"><button class="btn" data-act="open" data-id="${g.id}" data-tab="rules">📖 Aturan</button><button class="btn soft" data-act="open" data-id="${g.id}" data-tab="board">🏆 Skor${on ? ' ●' : ''}</button></div></article>`;
+}
+function updateList() {
+  const list = GAMES.filter(matches);
+  $('#count').textContent = `${list.length} dari ${GAMES.length} permainan`;
+  $('#list').innerHTML = list.length ? list.map(cardHtml).join('') : `<div class="empty" style="grid-column:1/-1">🃏<b>Tidak ada yang cocok</b>Ubah filter atau kata kunci pencarian.<br><br><button class="btn" data-act="freset">Reset filter</button></div>`;
+  $('#chips').innerHTML = chipsHtml();
+}
+function homeView() {
+  const act = GAMES.filter(hasProgress);
+  app.className = 'wrap wide';
+  app.innerHTML = `<header class="top"><div class="brand"><div class="logo"><i>♠</i><i class="r">♥</i><i class="g">♦</i><i>♣</i></div><div><h1>RemiDeck</h1><p>Aturan & papan skor kartu remi</p></div></div><button class="icon" data-act="theme" aria-label="Ganti tema">${themeIcon()}</button></header>
+  <div class="search"><input id="q" type="search" placeholder="Cari permainan atau aturan (bakar, malak, kemps…)" autocomplete="off" value="${esc(F.q)}"></div>
+  <div id="chips"></div>
+  ${act.length ? `<div class="resume"><b>Lanjutkan skor:</b>${act.map(g => `<button data-act="open" data-id="${g.id}" data-tab="board">${g.emoji} ${esc(g.title.split(' / ')[0])}</button>`).join('')}</div>` : ''}
+  <div class="count" id="count"></div><div class="grid" id="list"></div>
+  <footer class="f">Skor tersimpan di perangkat ini · ${persistOK ? 'penyimpanan otomatis aktif' : 'penyimpanan permanen tidak tersedia di sini'}</footer>`;
+  updateList();
+}
+
+function listHtml(items) {
+  return '<ul>' + items.map(i => typeof i === 'string' ? `<li>${md(i)}</li>` : `<li>${md(i.t)}<ul>${i.sub.map(s => `<li>${md(s)}</li>`).join('')}</ul></li>`).join('') + '</ul>';
+}
+function cardsHtml(str) {
+  return '<div class="cards">' + str.split(/\s+/).filter(Boolean).map(t => {
+    if (t === '|') return '<i class="gp"></i>';
+    if (t === '??') return '<span class="pc back" role="img" aria-label="kartu tertutup"></span>';
+    const m = t.match(/^(10|[2-9AJQK])([♠♥♦♣])$/);
+    if (!m) return `<span class="op">${esc(t)}</span>`;
+    const red = m[2] === '♥' || m[2] === '♦';
+    return `<span class="pc ${red ? 'red' : ''}" role="img" aria-label="${m[1]} ${m[2]}"><b class="cv">${m[1]}<i>${m[2]}</i></b><span class="st">${m[2]}</span></span>`;
+  }).join('') + '</div>';
+}
+function exHtml(g) {
+  if (!g.ex || !g.ex.length) return '';
+  return `<details class="card sec" open><summary><span class="n">🎴</span>Contoh kartu<span class="chev">⌄</span></summary><div class="sec-b ex">${g.ex.map(b => `<div><h4>${esc(b.t)}</h4>${b.rows.map(([c, l, ok]) => `<div class="exr">${c ? cardsHtml(c) : ''}<div class="exl ${ok === 1 ? 'ok' : ok === 0 ? 'no' : ''}">${ok === 1 ? '✓ ' : ok === 0 ? '✗ ' : ''}${esc(l)}</div></div>`).join('')}</div>`).join('')}</div></details>`;
+}
+function rulesView(g) {
+  return `<div class="card hero"><p class="goal">${esc(g.goal)}</p>
+    <div class="meta"><span>👥 ${g.players}</span><span>🃏 ${g.decks}</span><span>⏱ ${g.time}</span><span class="lvl">${g.level}</span></div>
+    <div class="tags">${g.tags.map(t => `<span>${esc(t)}</span>`).join('')}</div></div>
+  ${exHtml(g)}
+  ${g.sections.map((s, i) => `<details class="card sec" ${i < 1 ? 'open' : ''}><summary><span class="n">${i + 1}</span>${esc(s.h)}<span class="chev">⌄</span></summary><div class="sec-b">${listHtml(s.items)}</div></details>`).join('')}
+  <div class="rules-act"><button class="btn" data-act="copy-wa">📋 Salin format WA</button><button class="btn primary" data-act="tab" data-tab="board">🏆 Buka skor</button></div>`;
+}
+
+function rowHtml(g, r, i) {
+  const sym = r.sym || (r.lead ? '👑' : r.rank);
+  const acts = g.kind === 'ev' && g.acts ? g.acts(r.p) : '';
+  return `<article class="row ${r.lead ? 'lead' : ''} ${r.dim ? 'dim' : ''}" data-pid="${r.p.id}">
+    <div class="row-main"><span class="rk">${sym}</span><div class="who"><b>${esc(r.p.name)}</b>${r.chips ? `<div class="chips">${r.chips}</div>` : ''}</div>
+    <div class="val ${r.tone || ''}"><span class="v num">${r.valueText}</span>${r.unit ? `<span class="u">${r.unit}</span>` : ''}</div></div>
+    ${r.progress != null ? `<div class="bar"><i style="width:${Math.max(0, Math.min(100, Math.round(r.progress * 100)))}%"></i></div>` : ''}
+    ${r.extra || ''}${acts ? `<div class="acts">${acts}</div>` : ''}</article>`;
+}
+function boardView(g) {
+  const rows = g.rows(), win = g.winner ? g.winner() : null, n = S.rounds.length;
+  const hint = g.hint ? g.hint() : '';
+  return `<div class="strip"><span class="pill">${g.kind === 'sheet' ? 'Ronde ' + (n + 1) : 'Catatan: ' + n}</span>${S.settings.target ? `<span class="pill gold">🎯 Target ${S.settings.target}</span>` : ''}<span class="pill ${persistOK ? 'ok' : 'warn'}">${persistOK ? '● Tersimpan otomatis' : 'Hanya sesi ini'}</span></div>
+  <div class="tb"><button class="btn" data-act="undo" ${stack.length ? '' : 'disabled'}><span>↩</span>Urungkan</button><button class="btn" data-act="tools"><span>🎲</span>Alat</button><button class="btn" data-act="table"><span>📺</span>Mode Meja</button><button class="btn" data-act="settings"><span>⚙️</span>Atur</button></div>
+  ${win ? `<div class="banner"><span>🏆 ${esc(win)} juara!</span><button class="btn primary" data-act="newgame">Game baru</button></div>` : ''}
+  ${g.top ? g.top() : ''}
+  ${hint ? `<div class="hint">${hint.split('\n').map(l => `<div>${md(l)}</div>`).join('')}</div>` : ''}
+  <section class="lb">${rows.map((r, i) => rowHtml(g, r, i)).join('')}</section>
+  ${g.kind === 'sheet' ? `<div class="dock"><button class="btn primary lg" data-act="round-open">＋ Catat Ronde ${n + 1}</button></div>` : ''}
+  ${n ? `<details class="card hist" id="hist" ${histOpen ? 'open' : ''}><summary>📜 Riwayat (${n})</summary>${S.rounds.slice().reverse().map((r, i) => `<div class="h-i"><div><b>${g.kind === 'sheet' ? 'Ronde ' + (n - i) : '#' + (n - i)}</b><div class="chips">${g.hist(r)}</div></div><button class="x" data-act="rd-del" data-id="${r.id}" aria-label="Hapus catatan">✕</button></div>`).join('')}</details>` : ''}`;
+}
+function gameView() {
+  const g = cur, tab = route.tab;
+  app.className = 'wrap';
+  app.innerHTML = `<header class="gh" id="gh"><div class="gh-row"><button class="icon" data-act="home" aria-label="Kembali">←</button><div class="gh-t"><h1>${g.emoji} ${esc(g.title)}</h1><p>${g.players} · ${g.decks} · ${g.time}</p></div><button class="icon" data-act="theme" aria-label="Ganti tema">${themeIcon()}</button></div>
+  <div class="seg"><button data-act="tab" data-tab="rules" class="${tab === 'rules' ? 'on' : ''}">📖 Aturan</button><button data-act="tab" data-tab="board" class="${tab === 'board' ? 'on' : ''}">🏆 Skor${S.rounds.length ? ' ●' : ''}</button></div></header>
+  <div id="body">${tab === 'rules' ? rulesView(g) : boardView(g)}</div>`;
+  updateStuck();
+}
+function renderView() {
+  const y = window.scrollY;
+  if (route.n === 'home') homeView(); else gameView();
+  window.scrollTo(0, y);
+  renderTT();
+}
+function renderTT() {
+  const el = $('#tt');
+  if (!(tt && route.n === 'game' && route.tab === 'board')) { el.hidden = true; document.body.classList.remove('noscroll'); return; }
+  const g = cur, rows = g.rows(), win = g.winner ? g.winner() : null;
+  el.hidden = false; document.body.classList.add('noscroll');
+  el.innerHTML = `<div class="tt-in"><div class="tt-h"><h2>${g.emoji} ${esc(g.title)}${S.settings.target ? ' · 🎯 ' + S.settings.target : ''}</h2><button class="btn" data-act="ttclose">✕ Tutup</button></div>
+  ${win ? `<div class="banner"><span>🏆 ${esc(win)} juara!</span></div>` : ''}
+  ${rows.map(r => `<div class="tt-r ${r.lead ? 'lead' : ''}"><span class="rk" style="width:44px;height:44px;font-size:18px">${r.sym || (r.lead ? '👑' : r.rank)}</span><span class="nm">${esc(r.p.name)}</span><span class="v num ${r.tone === 'neg' ? 'neg' : ''}">${r.valueText}</span></div>`).join('')}</div>`;
+}
+function updateStuck() { const h = $('#gh'); if (h) h.classList.toggle('stuck', window.scrollY > 4); }
+
+/* ============================================================
+   ROUTING
+============================================================ */
+function parseHash() {
+  try { const m = (location.hash || '').match(/^#g-([a-z0-9-]+)-(rules|board)$/); if (m) return { n: 'game', id: m[1], tab: m[2] }; } catch (e) {}
+  return { n: 'home' };
+}
+function go(r, fromHash) {
+  closeSheet(true); tt = false; histOpen = false;
+  if (r.n === 'game') {
+    const g = GAMES.find(x => x.id === r.id); if (!g) { r = { n: 'home' }; } else if (!cur || cur.id !== g.id) { cur = g; S = load(g); stack = []; }
+  }
+  route = r;
+  if (!fromHash) { try { location.hash = r.n === 'game' ? `g-${r.id}-${r.tab}` : ''; } catch (e) {} }
+  renderView(); window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', () => {
+  const r = parseHash();
+  if (r.n !== route.n || r.id !== route.id || r.tab !== route.tab) go(r, true);
+});
+window.addEventListener('scroll', updateStuck, { passive: true });
+
+/* ============================================================
+   SHEET / TOAST / CLIPBOARD
+============================================================ */
+let toastT = null;
+function toast(msg, withUndo) {
+  const t = $('#toast');
+  t.innerHTML = `<span>${esc(msg)}</span>${withUndo && stack.length ? '<button data-act="undo">Urungkan</button>' : ''}`;
+  t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 4500);
+}
+function openSheet(title, body, foot, persistent) {
+  $('#sheetTitle').textContent = title; $('#sheetBody').innerHTML = body; $('#sheetFoot').innerHTML = foot || '';
+  const sw = $('#sheet'); sw.hidden = false; sw.dataset.persist = persistent ? '1' : ''; document.body.classList.add('noscroll');
+  $('#sheetBody').scrollTop = 0;
+}
+function closeSheet(silent) {
+  timers.forEach(clearInterval); timers = [];
+  $('#sheet').hidden = true; sheetKind = null; draft = null;
+  if (!tt) document.body.classList.remove('noscroll');
+}
+async function copyText(t) {
+  try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(t); return true; } } catch (e) {}
+  try { const ta = document.createElement('textarea'); ta.value = t; ta.style.cssText = 'position:fixed;top:-999px'; document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); ta.remove(); if (ok) return true; } catch (e) {}
+  return false;
+}
+async function copyOrShow(t, okMsg) {
+  if (await copyText(t)) return toast(okMsg);
+  sheetKind = 'text'; openSheet('Salin manual', `<div class="set"><p style="font-size:13px;color:var(--muted);margin-bottom:8px">Salin otomatis tidak tersedia. Tekan lama / pilih semua, lalu salin:</p><textarea readonly style="height:260px" onfocus="this.select()">${esc(t)}</textarea></div>`, '');
+}
+function waText(g) {
+  return `${g.emoji} *CARA MAIN ${g.title.toUpperCase()} (${g.players.toUpperCase()})* ${g.emoji}\n_Tujuan: ${g.goal}_\n\n` +
+    g.sections.map((s, i) => `*${i + 1}. ${s.h.toUpperCase()}*\n` + s.items.map(it => typeof it === 'string' ? '• ' + wab(it) : '• ' + wab(it.t) + '\n' + it.sub.map(x => '   – ' + wab(x)).join('\n')).join('\n')).join('\n\n') + (g.ex.length ? '\n\n*CONTOH KARTU*\n' + g.ex.map(b => `_${b.t}_\n` + b.rows.map(([c, l, ok]) => `• ${c.replace(/\?\?/g, '🂠')} ${c ? (ok === 1 ? '✓' : ok === 0 ? '✗' : '=') + ' ' : ''}${l}`).join('\n')).join('\n\n') : '') + '\n\n_via RemiDeck_';
+}
+function scoreText() {
+  return `${cur.emoji} *Skor ${cur.title}*\n` + cur.rows().map(r => `${r.rank}. ${r.p.name} — ${plain(String(r.valueText))}${r.unit ? ' ' + r.unit : ''}`).join('\n') + `\n\n_RemiDeck_`;
+}
+
+/* ---- Sheets ---- */
+function openRoundSheet() {
+  const g = cur;
+  if (g.openRound) return g.openRound();
+  sheetKind = 'round';
+  openSheet('Catat ronde ' + (S.rounds.length + 1), `<form id="rf" onsubmit="return false">${g.form()}</form>`,
+    `<button class="btn" data-act="sheet-close">Batal</button><button class="btn primary" data-act="round-save">✓ Simpan ronde</button>`, true);
+  g.preview($('#rf'));
+}
+function drawOrder() {
+  const rem = S.players.filter(p => !draft.includes(p.id)); const n = S.players.length;
+  if (rem.length === 1) { draft.push(rem[0].id); rem.length = 0; }
+  $('#sheetBody').innerHTML = `<p style="font-size:13.5px;color:var(--muted);margin:0 0 12px">Ketuk pemain sesuai urutan <b>selesai</b> (yang kartunya habis duluan). Pemain terakhir terisi otomatis.</p>
+  <div class="ord">${draft.map((id, i) => `<div class="ord-i"><span class="no">${i + 1}</span>${esc(nm(id))}<small>${presRank(i, n).l} · ${sg(presRank(i, n).pts)}</small></div>`).join('')}</div>
+  ${rem.length ? `<span class="lbl">Belum selesai</span><div class="pick">${rem.map(p => `<button type="button" class="btn" data-act="ord-add" data-pid="${p.id}">${esc(p.name)}</button>`).join('')}</div>` : ''}
+  ${draft.length ? `<button class="btn" data-act="ord-undo">↩ Hapus urutan terakhir</button>` : ''}`;
+  $('#sheetFoot').innerHTML = `<button class="btn" data-act="sheet-close">Batal</button><button class="btn primary" data-act="round-save" ${draft.length === n ? '' : 'disabled'}>✓ Simpan ronde</button>`;
+}
+function settingsHtml() {
+  const g = cur, ent = g.ent === 'Tim' ? 'tim' : 'pemain';
+  return `${g.tgt ? `<div class="set"><span class="lbl">${g.tgt.label}</span>${stp('target', S.settings.target, g.tgt.step, g.tgt.min).replace('<input', '<input data-set="target"')}</div>` : ''}
+  <div class="set"><span class="lbl">${g.ent === 'Tim' ? 'Tim' : 'Pemain'} (${S.players.length}/${g.max})</span>
+    ${S.players.map(p => `<div class="rn"><input data-rn="${p.id}" value="${esc(p.name)}" maxlength="24" aria-label="Nama">${!g.fixed && S.players.length > g.min ? `<button class="x" data-act="pl-del" data-id="${p.id}" aria-label="Hapus ${esc(p.name)}">🗑</button>` : ''}</div>`).join('')}
+    ${!g.fixed && S.players.length < g.max ? `<form id="addf" class="rn"><input id="addn" maxlength="24" placeholder="Nama ${ent} baru"><button class="btn soft">＋ Tambah</button></form>` : ''}</div>
+  <div class="set"><span class="lbl">Permainan</span><div class="two"><button class="btn soft" data-act="newgame">🔄 Game baru<br><small>nama tetap, skor 0</small></button><button class="btn danger" data-act="reset">🗑 Reset total<br><small>nama ikut direset</small></button></div></div>
+  <div class="set"><span class="lbl">Bagikan & cadangan</span><div class="two"><button class="btn" data-act="share">📤 Bagikan skor</button><button class="btn" data-act="exp-copy">💾 Salin data</button></div>
+    <textarea id="impTa" placeholder="Tempel data cadangan di sini untuk memulihkan…" style="margin-top:8px"></textarea><button class="btn" style="margin-top:8px;width:100%" data-act="imp-go">⬇ Pulihkan dari data</button></div>`;
+}
+function fillSettings() { $('#sheetBody').innerHTML = settingsHtml(); }
+
+/* ============================================================
+   EVENTS
+============================================================ */
+const ACT = {
+  home: () => go({ n: 'home' }),
+  open: t => go({ n: 'game', id: t.dataset.id, tab: t.dataset.tab || 'rules' }),
+  tab: t => go({ n: 'game', id: cur.id, tab: t.dataset.tab }),
+  theme: () => { const d = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = d; store.set('rd_theme', d); renderView(); },
+  fpl: t => { F.pl = t.dataset.v; updateList(); },
+  fcat: t => { F.cat = t.dataset.v; updateList(); },
+  freset: () => { F.q = ''; F.pl = 'all'; F.cat = 'all'; const q = $('#q'); if (q) q.value = ''; updateList(); },
+  undo: undo,
+  scrim: () => { if (!$('#sheet').dataset.persist) closeSheet(); },
+  'sheet-close': () => closeSheet(),
+  'copy-wa': () => copyOrShow(waText(cur), 'Aturan disalin, siap tempel ke WhatsApp'),
+  table: () => { tt = true; renderTT(); },
+  ttclose: () => { tt = false; renderTT(); },
+  settings: () => { sheetKind = 'settings'; openSheet('Pengaturan', settingsHtml(), ''); },
+  tools: () => {
+    sheetKind = 'tools';
+    openSheet('Alat bantu', `<div class="set"><span class="lbl">Siapa jalan duluan?</span><div class="out" id="pickOut">—</div><button class="btn primary" style="width:100%" data-act="pick-first">🎲 Acak pemain</button></div>
+    <div class="set"><span class="lbl">Timer</span><div class="big num" id="tmOut">--</div><div class="trio"><button class="btn" data-act="timer" data-s="10">10 dtk</button><button class="btn" data-act="timer" data-s="15">15 dtk</button><button class="btn" data-act="timer" data-s="30">30 dtk</button></div></div>`, '');
+  },
+  'pick-first': () => {
+    const out = $('#pickOut'); const ns = S.players.map(p => p.name); let i = 0; timers.forEach(clearInterval);
+    const id = setInterval(() => { out.textContent = ns[Math.floor(Math.random() * ns.length)]; if (++i > 14) { clearInterval(id); out.textContent = '▶ ' + ns[Math.floor(Math.random() * ns.length)]; } }, 70); timers.push(id);
+  },
+  timer: t => {
+    timers.forEach(clearInterval); let s = +t.dataset.s; const out = $('#tmOut'); out.textContent = s; out.style.color = '';
+    const id = setInterval(() => { s--; if (s <= 0) { clearInterval(id); out.textContent = '⏰ Habis!'; out.style.color = 'var(--danger)'; try { navigator.vibrate && navigator.vibrate(300); } catch (e) {} } else out.textContent = s; }, 1000); timers.push(id);
+  },
+  'round-open': openRoundSheet,
+  'round-save': () => {
+    const g = cur; let round;
+    if (sheetKind === 'pres') { round = { id: uid(), o: draft.slice() }; }
+    else { const res = g.read($('#rf')); if (res.err) return toast(res.err); round = res.round; }
+    const label = 'Ronde ' + (S.rounds.length + 1) + ' tersimpan';
+    closeSheet(); mutate(label, S => S.rounds.push(round));
+  },
+  'ord-add': t => { draft.push(t.dataset.pid); drawOrder(); },
+  'ord-undo': () => { draft.pop(); drawOrder(); },
+  ev: t => {
+    const pid = t.closest('[data-pid]').dataset.pid, k = t.dataset.kind;
+    const g = cur; const txt = g.label && g.label[k] ? `${nm(pid)} ${g.label[k]}` : KK[k] ? `${nm(pid)} ${KK[k][0]}` : `${nm(pid)} kalah ronde`;
+    mutate(txt, S => S.rounds.push({ id: uid(), p: pid, k }));
+  },
+  'rd-del': t => mutate('Catatan dihapus', S => { S.rounds = S.rounds.filter(r => r.id !== t.dataset.id); }),
+  spmode: t => mutate(null, S => { S.settings.mode = t.dataset.m; }),
+  newgame: () => { closeSheet(); mutate('Game baru dimulai', S => { S.rounds = []; }); },
+  reset: () => { const f = fresh(cur); closeSheet(); mutate('Data direset', S => { S.players = f.players; S.settings = f.settings; S.rounds = []; }); },
+  'pl-del': t => { const n = nm(t.dataset.id); mutate(n + ' dihapus', S => { S.players = S.players.filter(p => p.id !== t.dataset.id); }); },
+  share: async () => {
+    const text = scoreText();
+    if (navigator.share) { try { await navigator.share({ text }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+    copyOrShow(text, 'Skor disalin, tinggal tempel ke WhatsApp');
+  },
+  'exp-copy': () => copyOrShow(JSON.stringify(S), 'Data cadangan disalin'),
+  'imp-go': () => {
+    try {
+      const d = JSON.parse($('#impTa').value);
+      if (!d || !Array.isArray(d.players) || !Array.isArray(d.rounds) || !d.players.every(p => p && p.id && typeof p.name === 'string')) throw 0;
+      closeSheet(); mutate('Data dipulihkan', S => { S.players = d.players; S.rounds = d.rounds; S.settings = { ...cur.settings, ...(d.settings || {}) }; });
+    } catch (e) { toast('Data tidak valid'); }
+  }
+};
+document.addEventListener('click', e => {
+  const st = e.target.closest('[data-step]');
+  if (st) {
+    const inp = st.parentElement.querySelector('input'); const min = inp.min !== '' ? +inp.min : -Infinity, max = inp.max !== '' ? +inp.max : Infinity;
+    inp.value = Math.min(max, Math.max(min, num(inp.value) + +st.dataset.step));
+    inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true })); return;
+  }
+  const t = e.target.closest('[data-act]'); if (!t) return;
+  const h = ACT[t.dataset.act]; if (h) { e.stopPropagation(); h(t, e); }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { if (!$('#sheet').hidden) closeSheet(); else if (tt) { tt = false; renderTT(); } }
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('.gcard')) { e.preventDefault(); e.target.click(); }
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.id === 'q') { F.q = t.value; updateList(); }
+  if (t.closest && t.closest('#rf') && cur && cur.preview) cur.preview($('#rf'));
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset && t.dataset.set === 'target') { S.settings.target = Math.max(cur.tgt.min, num(t.value) || cur.settings.target); save(); renderView(); }
+  if (t.dataset && t.dataset.rn) { const p = P(t.dataset.rn), v = t.value.trim(); if (p && v) { p.name = v; save(); renderView(); } else if (p) t.value = p.name; }
+  if (t.closest && t.closest('#rf') && cur && cur.preview) cur.preview($('#rf'));
+});
+document.addEventListener('submit', e => {
+  if (e.target.id === 'addf') {
+    e.preventDefault(); const v = $('#addn').value.trim() || `${cur.ent} ${S.players.length + 1}`;
+    mutate(null, S => S.players.push({ id: uid(), name: v }));
+    const a = $('#addn'); if (a) a.focus();
+  }
+});
+document.addEventListener('toggle', e => { if (e.target.id === 'hist') histOpen = e.target.open; }, true);
+
+/* ============================================================
+   INIT
+============================================================ */
+(function init() {
+  const saved = store.get('rd_theme');
+  let dark = false; try { dark = saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; } catch (e) {}
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  go(parseHash(), true);
+})();
+})();
+</script>
+</body>
+</html>
